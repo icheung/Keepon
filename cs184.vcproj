@@ -47,7 +47,6 @@
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4996"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -135,7 +134,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="glut32.lib opengl32.lib"
-				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;glut-3.7.6-bin&quot;"
 				GenerateDebugInformation="true"
@@ -179,7 +177,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\src\Film.h"
+				RelativePath=".\include\algebra3.h"
 				>
 			</File>
 			<File
@@ -191,66 +189,26 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\Primitives.h"
+				RelativePath=".\src\mesh.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\Viewport.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\World.h"
+				RelativePath=".\src\skeleton.h"
 				>
 			</File>
 			<Filter
 				Name="UCB"
 				>
 				<File
-					RelativePath=".\src\UCB\mathexpr.h"
+					RelativePath=".\src\ucb\Image.h"
 					>
 				</File>
 				<File
-					RelativePath=".\src\UCB\MeshInfo.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\ParametricValue.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\Scene.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneData.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneGroup.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneInfo.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneInstance.h"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneLoader.h"
+					RelativePath=".\src\ucb\ImageSaver.h"
 					>
 				</File>
 				<File
 					RelativePath=".\src\UCB\UCBglobal.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="algebra"
-				>
-				<File
-					RelativePath=".\include\algebra3.h"
 					>
 				</File>
 			</Filter>
@@ -267,62 +225,30 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\Film.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\main.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\Primitives.cpp"
+				RelativePath=".\src\mesh.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\Viewport.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\World.cpp"
+				RelativePath=".\src\skeleton.cpp"
 				>
 			</File>
 			<Filter
 				Name="UCB"
 				>
 				<File
-					RelativePath=".\src\UCB\mathexpr.cpp"
+					RelativePath=".\src\ucb\Image.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\UCB\MeshInfo.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\Scene.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneGroup.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneInstance.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\UCB\SceneLoader.cpp"
+					RelativePath=".\src\ucb\ImageSaver.cpp"
 					>
 				</File>
 			</Filter>
 		</Filter>
-		<File
-			RelativePath=".\doc\index.html"
-			>
-		</File>
-		<File
-			RelativePath=".\doc\OBJfiles.html"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

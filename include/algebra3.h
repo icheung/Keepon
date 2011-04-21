@@ -18,11 +18,6 @@
 //	-	Stream I/O is disabled for portability, but can be
 //		re-enabled by defining ALGEBRA3IOSTREAMS.
 //
-// Modified by N. Joubert, February 2009
-// -    Added Ray, Point, Color and Material classes
-// -    Extended IOStreams
-// -    More ideal for raytracing!
-
 #ifndef ALGEBRA3H
 #define ALGEBRA3H
 
@@ -41,6 +36,7 @@ typedef double (*V_FCT_PTR)(double);
 // min-max macros
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MAX(A,B) ((A) > (B) ? (A) : (B))
+#define CLAMP(V,A,B) (MIN((B), MAX((A), (V))))
 
 #undef min					// allow as function names
 #undef max
@@ -57,9 +53,6 @@ class vec3;
 class vec4;
 class mat3;
 class mat4;
-class Ray;
-class Point;
-class vec3;
 
 enum {
     VX, VY, VZ, VW
@@ -70,13 +63,17 @@ enum {
 enum {
     RED, GREEN, BLUE
 }; // colors
-
+enum {
+    KA, KD, KS, ES
+}; // phong coefficients
 //
 //	PI
 //
 //const double M_PI = (double) 3.14159265358979323846;		// per CRC handbook, 14th. ed.
 //const double M_PI_2 = (M_PI/2.0);				// PI/2
 //const double M2_PI = (M_PI*2.0);				// PI*2
+
+
 
 
 /****************************************************************
@@ -96,7 +93,7 @@ public:
 
     vec2();
     vec2(const double x, const double y);
-    vec2(const double d);
+    explicit vec2(const double d);
     vec2(const vec2& v); // copy constructor
     vec2(const vec3& v); // cast v3 to v2
     vec2(const vec3& v, int dropAxis); // cast v3 to v2
@@ -165,7 +162,7 @@ public:
 
     vec3();
     vec3(const double x, const double y, const double z);
-    vec3(const double d);
+    explicit vec3(const double d);
     vec3(const vec3& v); // copy constructor
     vec3(const vec2& v); // cast v2 to v3
     vec3(const vec2& v, double d); // cast v2 to v3
@@ -239,9 +236,8 @@ public:
     // Constructors
 
     vec4();
-    vec4(const double x, const double y, const double z);
     vec4(const double x, const double y, const double z, const double w);
-    vec4(const double d);
+    explicit vec4(const double d);
     vec4(const vec4& v); // copy constructor
     vec4(const vec3& v); // cast vec3 to vec4
     vec4(const vec3& v, const double d); // cast vec3 to vec4
@@ -311,7 +307,7 @@ public:
 
     mat3();
     mat3(const vec3& v0, const vec3& v1, const vec3& v2);
-    mat3(const double d);
+    explicit mat3(const double d);
     mat3(const mat3& m);
 
     // Assignment operators
@@ -371,7 +367,7 @@ public:
 
     mat4();
     mat4(const vec4& v0, const vec4& v1, const vec4& v2, const vec4& v3);
-    mat4(const double d);
+    explicit mat4(const double d);
     mat4(const mat4& m);
 
     // Assignment operators
@@ -415,40 +411,66 @@ public:
 };
 
 /****************************************************************
- *                                                              *
- *             Ray                                              *
- *                                                              *
+ *																*
+ *			    Quaternion										*
+ *																*
  ****************************************************************/
-
-class Ray {
-private:
-
-    vec4 _e;
-    vec4 _d;
-    double _min_t;
+class quat {
+protected:
+    double a;
+    vec3 v;
 
 public:
-
-    Ray();
-    Ray(vec4 & start, vec4 & end, double min_t);
-    Ray(const Ray & r);
-
-    //special functions
-
-	inline void transform(const mat4 &xf)
-    {
-        _e = xf * _e;
-        _d = xf * _d;
+    quat() : a(1.0), v(0.0) {}
+    quat(vec3 v) : a(0.0), v(v) {}
+    quat(double a, vec3 v) : a(a), v(v) {}
+    static quat axisAngle(vec3 axis, double angle) {
+        double axisLen = axis.length();
+        if (axisLen < .00000000001)
+            return quat(1,vec3(0,0,0));
+        axis.normalize(); 
+        return quat(cos(angle*.5), sin(angle*.5)*axis);
     }
-
-    vec4 getPos(double t);
-    double & getMinT();
-
-    //accessor functions
-
-    vec4 & start();
-    vec4 & direction();
-
+    static quat getRotation(vec3 dir1, vec3 dir2) {
+        dir1.normalize(); dir2.normalize();
+        vec3 axis = dir1^dir2;
+        double sina = axis.length();
+        double cosa = dir1*dir2;
+        double angle = atan2(sina,cosa);
+        return axisAngle(axis, angle);
+    }
+    double &operator[](int i) { if (i==0) return a; else return v[i-1]; }
+    quat nlerp(const quat &q, double t) { // normalized lerp
+        quat i((1-t)*a+t*q.a, (1-t)*v+t*q.v);
+        i.normalize();
+        return i;
+    }
+    vec3 rotate(vec3 v) {
+        quat pq(v);
+        quat qinv = conjugate();
+        quat res = (*this)*pq*qinv;
+        return res.v;
+    }
+    quat getNearest(const quat &q) {
+        if (q.a*a+q.v*v < 0)
+            return quat(-a,-v);
+        else
+            return *this;
+    }
+    quat operator*(const quat &q) const {
+        return quat(a*q.a-v*q.v, (a*q.v)+(q.a*v)+(v^q.v));
+    }
+    quat conjugate() { // aka inverse
+        return quat(a, -v);
+    }
+    quat& normalize() { // normalize in-place
+        double invlen = 1.0/sqrt(a*a+v*v);
+        a *= invlen;
+        v *= invlen;
+        return *this;
+    }
+    double angle() const { return 2.0 * atan2(a, v.length()); }
+    vec3 axis() const { return v; }
 };
 
 
@@ -947,13 +969,6 @@ inline vec4::vec4(const double x, const double y, const double z,
     n[VY] = y;
     n[VZ] = z;
     n[VW] = w;
-}
-
-inline vec4::vec4(const double x, const double y, const double z) {
-    n[VX] = x;
-    n[VY] = y;
-    n[VZ] = z;
-    n[VW] = 1.0;
 }
 
 inline vec4::vec4(const double d) {
@@ -1538,60 +1553,15 @@ inline void swap(mat4& a, mat4& b) {
 }
 
 /****************************************************************
- *                                                              *
- *          Ray Member functions                                *
- *                                                              *
- ****************************************************************/
-
-inline Ray::Ray() {
-
-}
-
-inline Ray::Ray(vec4 & start, vec4 & end, double min_t) {
-    _e = start;
-    _d = (end - start);
-    _min_t = min_t;
-}
-
-inline Ray::Ray(const Ray & r) {
-    _e = r._e;
-    _d = r._d;
-    _min_t = r._min_t;
-}
-
-//special functions
-
-inline vec4 Ray::getPos(double t) {
-    vec4 p = _e + t*_d;
-    p[VW] = 1.0;
-    return p;
-}
-
-inline double & Ray::getMinT() {
-    return _min_t;
-}
-
-//accessor functions
-inline vec4 & Ray::start() {
-    return _e;
-}
-
-inline vec4 & Ray::direction() {
-    return _d;
-}
-
-
-/****************************************************************
  *																*
  *	      			 Mathematica Functions          			*
  *																*
  ****************************************************************/
 inline mat3 List(vec3 v0, vec3 v1, vec3 v2) { return mat3(v0, v1, v2); }
 inline vec3 List(double s0, double s1, double s2) { return vec3(s0, s1, s2); }
-// note -- I removed pointless redefinitions of existing math functions, as they were pointless
 //inline double Abs(double value) { return abs(value); }
-//inline double Power(double value, double exp) { return pow(value, exp); }
-//inline double Sqrt(double value) { return sqrt(value); }
+inline double Power(double value, double exp) { return pow(value, exp); }
+inline double Sqrt(double value) { return sqrt(value); }
 
 /****************************************************************
  *																*

@@ -18,6 +18,4 @@
 #include <GL/glu.h>
 #endif
 
-#include <algebra3.h>
-
 #endif /* UCBGLOBAL_H_ */

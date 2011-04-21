@@ -1,0 +1,5 @@
+Skeleton mesh weighting file were created using the pinocchio/autorig program: see http://www.mit.edu/~ibaran/autorig/pinocchio.html
+
+
+The armadillo mesh is from the stanford scanning repository, here:
+http://graphics.stanford.edu/data/3Dscanrep/

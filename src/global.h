@@ -28,10 +28,7 @@
 
 //Include our math library
 #include <algebra3.h>
-
-#include "UCB/UCBglobal.h"
-
-#define IMAGE_WIDTH 512
-#define IMAGE_HEIGHT 512
+//Include our Image Saving library.
+#include "UCB/ImageSaver.h"
 
 #endif /* GLOBAL_H_ */
