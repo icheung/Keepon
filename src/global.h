@@ -31,4 +31,14 @@
 //Include our Image Saving library.
 #include "UCB/ImageSaver.h"
 
+// music related headers to include
+
+//#include "fmod/api/inc/fmod.h"
+#include "/Developer/FMOD/api/inc/fmod.hpp"
+#include "/Developer/FMOD/api/inc/fmod_errors.h"
+//#include "fmod/common/wincompat.h"
+#include <stdio.h>
+
+
+
 #endif /* GLOBAL_H_ */
