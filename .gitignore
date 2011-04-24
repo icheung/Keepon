@@ -2,3 +2,7 @@
 ###################
 *.o
 keepon
+
+# Other stuff we don't want to commit #
+#######################################
+*.DS_Store
