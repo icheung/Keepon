@@ -217,8 +217,8 @@ int main(int argc,char** argv) {
 	viewport.h = 600;
 
 	//Initialize the screen capture class to save BMP captures
-	//in the current directory, with the prefix "ik"
-	imgSaver = new UCB::ImageSaver("./", "ik");
+	//in the current directory, with the prefix "keepon"
+	imgSaver = new UCB::ImageSaver("./", "keepon");
 
 	//Create OpenGL Window
 	glutInitWindowSize(viewport.w,viewport.h);
@@ -262,16 +262,16 @@ int main(int argc,char** argv) {
 
     // load a mesh
     mesh = new Mesh();
-    mesh->loadFile("Armadillo.obj");
+    mesh->loadFile("keepon.obj");
     // load a matching skeleton
     skel = new Skeleton();
     skel->loadPinocchioFile("skeleton.out");
     mesh->centerAndScale(*skel);
     // load the correspondence between skeleton and mesh
-    skel->initBoneWeights("attachment.out", *mesh);
-    skel->updateSkin(*mesh);
+    //skel->initBoneWeights("attachment.out", *mesh);
+    //skel->updateSkin(*mesh);
     // start a new animation
-    anim = new Animation();
+    //anim = new Animation();
 
     // note the .out files loaded above were made using pinocchio
     //  -- a neat free tool for auto-skinning a mesh
