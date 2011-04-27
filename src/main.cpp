@@ -1,7 +1,7 @@
 #include "main.h"
 
 
-
+using namespace FMOD;
 using namespace std;
 
 
@@ -23,7 +23,15 @@ int frameCount = 0;
 Mesh *mesh;
 Skeleton *skel;
 Animation *anim;
+
+// music
 bool startedMusic=false;
+System  *fmodsys;
+Sound   *fmodsnd;
+Channel *fmodchn;
+float *specL, *specR, *spec;
+bool music_paused=false;
+#define SPECLEN 256
 
 // these variables track which joint is under IK, and where
 int ikJoint;
@@ -140,6 +148,10 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             savingImages = true;
             endFrameCount = frameCount + 100;
             break;
+		case ' ':
+			music_paused = !music_paused;
+			fmodchn->setPaused(music_paused);
+			break;
 	}
 }
 
@@ -219,137 +231,25 @@ void ERRCHECK(FMOD_RESULT result)
 }
 
 //-----------------------------------------------------------------------------------
-void playMusic()
-{		
-		// For now this is where I'm going to put the music stuff:
-			FMOD::System     *system;
-		    FMOD::Sound      *sound;
-		    FMOD::Channel    *channel = 0;
-		    FMOD_RESULT       result;
-		    int               key;
-		    unsigned int      version;
-
-		/*
-	        Global Settings
-	    */
-	    result = FMOD::System_Create(&system);
-	    ERRCHECK(result);
-
-	    result = system->getVersion(&version);
-	    ERRCHECK(result);
-
-	    if (version < FMOD_VERSION)
-	    {
-	        printf("Error!  You are using an old version of FMOD %08x.  This program requires %08x\n", version, FMOD_VERSION);
-	        //getch();
-	        //return 0;
-	    }
-
-	    result = system->init(1, FMOD_INIT_NORMAL, 0);
-	    ERRCHECK(result);
-
-	    result = system->createSound("camera.mp3", (FMOD_MODE)(FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM), 0, &sound);
-	    ERRCHECK(result);
-
-	    printf("====================================================================\n");
-	    printf("PlayStream Example.  Copyright (c) Firelight Technologies 2004-2011.\n");
-	    printf("====================================================================\n");
-	    printf("\n");
-	    printf("Press space to pause, Esc to quit\n");
-	    printf("\n");
-
-	/*
-	        Play the sound.
-	    */
-
-	    result = system->playSound(FMOD_CHANNEL_FREE, sound, false, &channel);
-	    ERRCHECK(result);
-
-	    /*
-	        Main loop.
-	    */
-	    do
-	    {
-			/*
-	        if (kbhit())
-	        {
-	            key = getch();
-
-	            switch (key)
-	            {
-	                case ' ' :
-	                {
-	                    bool paused;
-	                    channel->getPaused(&paused);
-	                    channel->setPaused(!paused);
-	                    break;
-	                }
-	            }
-	        }
-			*/
-	        system->update();
-
-	        if (channel)
-	        {
-	            unsigned int ms;
-	            unsigned int lenms;
-	            bool         playing;
-	            bool         paused;
-
-	            channel->isPlaying(&playing);
-	            if ((result != FMOD_OK) && (result != FMOD_ERR_INVALID_HANDLE))
-	            {
-	                ERRCHECK(result);
-	            }
-
-	            result = channel->getPaused(&paused);
-	            if ((result != FMOD_OK) && (result != FMOD_ERR_INVALID_HANDLE))
-	            {
-	                ERRCHECK(result);
-	            }
-
-	            result = channel->getPosition(&ms, FMOD_TIMEUNIT_MS);
-	            if ((result != FMOD_OK) && (result != FMOD_ERR_INVALID_HANDLE))
-	            {
-	                ERRCHECK(result);
-	            }
-
-	            result = sound->getLength(&lenms, FMOD_TIMEUNIT_MS);
-	            if ((result != FMOD_OK) && (result != FMOD_ERR_INVALID_HANDLE))
-	            {
-	                ERRCHECK(result);
-	            }
-
-	            printf("\rTime %02d:%02d:%02d/%02d:%02d:%02d : %s", ms / 1000 / 60, ms / 1000 % 60, ms / 10 % 100, lenms / 1000 / 60, lenms / 1000 % 60, lenms / 10 % 100, paused ? "Paused " : playing ? "Playing" : "Stopped");
-	            fflush(stdout);
-	        }
-
-	        //Sleep(10);
-
-	    } while (key != 27);
-
-	    printf("\n");
-
-	    /*
-	        Shut down
-	    */
-	    result = sound->release();
-	    ERRCHECK(result);
-	    result = system->close();
-	    ERRCHECK(result);
-	    result = system->release();
-	    ERRCHECK(result);	
-}
+void initFMOD(char * path)
+{
+ System_Create(&fmodsys);
+ fmodsys->init(1,FMOD_INIT_NORMAL,0);
+ cout << "\nfile: " << path << endl;
+ fmodsys->createSound(path,
+			FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM,
+			0, &fmodsnd);
+ fmodsys->playSound(FMOD_CHANNEL_FREE,fmodsnd,true,&fmodchn);
+ specL = (float*)malloc(SPECLEN*sizeof(float));
+ specR = (float*)malloc(SPECLEN*sizeof(float));
+ //tmp
+ unsigned int len;
+ fmodchn->setVolume(1);
+ fmodsnd->getLength( &len, FMOD_TIMEUNIT_MS );
+ fmodchn->setPosition( (int)(len*0.0), FMOD_TIMEUNIT_MS );
+};
 
 
-void IdleFunction(){
-	glutPostRedisplay();
-	//And Go!
-	if (startedMusic==false) {
-		startedMusic=true;
-		playMusic();
-	}
-}
 
 /// Initialize the environment
 int main(int argc,char** argv) {
@@ -372,7 +272,6 @@ int main(int argc,char** argv) {
 
 	//Register event handlers with OpenGL.
 	glutDisplayFunc(display);
-	glutIdleFunc(IdleFunction);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(myKeyboardFunc);
 	glutMotionFunc(myActiveMotionFunc);
@@ -424,5 +323,20 @@ int main(int argc,char** argv) {
     // get it here: http://www.mit.edu/~ibaran/autorig/pinocchio.html
     // you can use it to easily replace the default mesh with a mesh of your own making
 
+	/*************************************************
+	 GET YOUR GROOVE ON -- MUSACK INITIALIZED HERE
+	*************************************************/
+	cout << "Initialize sounds :" << argv[1]; // provide .mp3 file as first argument
+	initFMOD( argv[1] );
+	fmodchn->setPaused(music_paused);
 	glutMainLoop();
+	
+	/*************************************************
+	 CLEAN UP HERE
+	*************************************************/
+	fmodsnd->release();
+	fmodsys->close();
+	fmodsys->release();	
+	free(specR);
+	free(specL);
 }

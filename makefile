@@ -10,7 +10,7 @@ TARGET := keepon
 SOURCES := $(wildcard ./src/UCB/*.cpp) $(wildcard ./src/*.cpp)
 
 #Libraries -------------------------------
-LIB_PATH 			= /Developer/FMOD/api/lib
+LIB_PATH 			= src/fmod/api/lib
 LIB_NAME_RELEASE	= libfmodex.dylib
 LIB_NAME_LOGGING	= libfmodexL.dylib
 ARCH				= -arch i386 -arch ppc -arch x86_64
@@ -22,7 +22,7 @@ ifeq ($(shell sw_vers 2>/dev/null | grep Mac | awk '{ print $$2}'),Mac)
 	INCLUDE := -I./include/ -I/usr/X11/include
 	LIBRARY := -L./lib/ \
     	-L"/System/Library/Frameworks/OpenGL.framework/Libraries" \
-    	-L"/Developer/FMOD/api/lib" \
+    	-L"src/fmod/api/lib" \
     	-lGL -lGLU -lm -lstdc++
 	FRAMEWORK := -framework GLUT -framework OpenGL
 	MACROS := -DOSX
