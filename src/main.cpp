@@ -268,7 +268,7 @@ int main(int argc,char** argv) {
     skel->loadPinocchioFile("skeleton.out");
     mesh->centerAndScale(*skel);
     // load the correspondence between skeleton and mesh
-    //skel->initBoneWeights("attachment.out", *mesh);
+    skel->initBoneWeights("attachment.out", *mesh);
     //skel->updateSkin(*mesh);
     // start a new animation
     //anim = new Animation();
