@@ -8,5 +8,3 @@ SID: 19645368
 
 Description:
   Mac OSX 10.5.8
-  Include Extra Credit implementations!
-  
