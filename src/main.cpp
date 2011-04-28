@@ -30,6 +30,9 @@ System  *fmodsys;
 Sound   *fmodsnd;
 Channel *fmodchn;
 float *specL, *specR, *spec;
+float *oldspecL;
+float oldvalue;
+bool firstNote=true;
 bool music_paused=false;
 #define SPECLEN 256
 
@@ -71,7 +74,44 @@ void setupView() {
 /// To force a redraw of the screen (eg. after mouse events or the like) simply call
 /// glutPostRedisplay();
 void display() {
-
+	/*************************************************
+	 BEAT DETECTION STUFF HERE FOR NOW
+	*************************************************/
+	 bool playing;
+	 fmodchn->getPaused( &playing );
+	if ( !playing ) {
+		// frequency domain data
+	   //fmodchn->getSpectrum( specL, SPECLEN, 0, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
+	   //fmodchn->getSpectrum( specR, SPECLEN, 1, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
+		// time domain data
+		fmodchn->getWaveData( specL, SPECLEN, 0);  	
+		// treat the first note differently
+		if (firstNote) {
+			oldspecL = &oldvalue;
+			*oldspecL = *specL;
+			//fmodchn->getWaveData( specR, SPECLEN, 1);
+			firstNote=false;
+			cout << "one time" << endl;
+		}
+		cout << "this getWaveData: " << *specL << endl;
+		cout << "old getWaveData: " << *oldspecL << endl;
+		cout << "difference: " << *oldspecL-*specL << endl;
+		// large change in volume signals the beat?
+		if ((*oldspecL-*specL) > .55) { // chose an arbitrary, experimentally determined value
+			cout << "**************************************************************" << endl;
+			cout << "\nBEAT\n" << endl;
+			cout << "**************************************************************" << endl;
+		}
+		*oldspecL = *specL;
+		} 
+	else {
+		memset( specL, 0, SPECLEN*sizeof(float) );
+		memset( specR, 0, SPECLEN*sizeof(float) );	
+	};
+	/*************************************************
+	 END OF BEAT DETECTION STUFF
+	*************************************************/
+	
 	//Clear Buffers
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
