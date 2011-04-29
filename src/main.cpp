@@ -354,9 +354,9 @@ int main(int argc,char** argv) {
     mesh->centerAndScale(*skel);
     // load the correspondence between skeleton and mesh
     skel->initBoneWeights("attachment.out", *mesh);
-    //skel->updateSkin(*mesh);
+    skel->updateSkin(*mesh);
     // start a new animation
-    //anim = new Animation();
+    anim = new Animation();
 
     // note the .out files loaded above were made using pinocchio
     //  -- a neat free tool for auto-skinning a mesh
