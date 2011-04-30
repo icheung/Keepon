@@ -1,9 +1,7 @@
 #include "main.h"
 
-
 using namespace FMOD;
 using namespace std;
-
 
 // viewport
 struct Viewport {
@@ -12,7 +10,6 @@ struct Viewport {
 	vec2 mousePos;
     mat4 orientation;
 };
-
 
 //****************************************************
 // Global Variables
@@ -66,7 +63,7 @@ void setupView() {
     applyMat4(viewport.orientation);
 }
 
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 /// You will be calling all of your drawing-related code from this function.
 /// Nowhere else in your code should you use glBegin(...) and glEnd() except code
 /// called from this method.
@@ -74,43 +71,46 @@ void setupView() {
 /// To force a redraw of the screen (eg. after mouse events or the like) simply call
 /// glutPostRedisplay();
 void display() {
-	/*************************************************
-	 BEAT DETECTION STUFF HERE FOR NOW
-	*************************************************/
-	 bool playing;
-	 fmodchn->getPaused( &playing );
-	if ( !playing ) {
-		// frequency domain data
-	   //fmodchn->getSpectrum( specL, SPECLEN, 0, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
-	   //fmodchn->getSpectrum( specR, SPECLEN, 1, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
-		// time domain data
-		fmodchn->getWaveData( specL, SPECLEN, 0);  	
-		// treat the first note differently
-		if (firstNote) {
-			oldspecL = &oldvalue;
-			*oldspecL = *specL;
-			//fmodchn->getWaveData( specR, SPECLEN, 1);
-			firstNote=false;
-			cout << "one time" << endl;
-		}
-		cout << "this getWaveData: " << *specL << endl;
-		cout << "old getWaveData: " << *oldspecL << endl;
-		cout << "difference: " << *oldspecL-*specL << endl;
-		// large change in volume signals the beat?
-		if ((*oldspecL-*specL) > .55) { // chose an arbitrary, experimentally determined value
-			cout << "**************************************************************" << endl;
-			cout << "\nBEAT\n" << endl;
-			cout << "**************************************************************" << endl;
-		}
-		*oldspecL = *specL;
-		} 
-	else {
-		memset( specL, 0, SPECLEN*sizeof(float) );
-		memset( specR, 0, SPECLEN*sizeof(float) );	
-	};
-	/*************************************************
-	 END OF BEAT DETECTION STUFF
-	*************************************************/
+    /*************************************************
+     BEAT DETECTION STUFF HERE FOR NOW
+    *************************************************/
+     bool playing;
+     fmodchn->getPaused( &playing );
+     if ( !playing ) {
+        // frequency domain data
+        //fmodchn->getSpectrum( specL, SPECLEN, 0, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
+        //fmodchn->getSpectrum( specR, SPECLEN, 1, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
+        // time domain data
+        fmodchn->getWaveData( specL, SPECLEN, 0);
+        // treat the first note differently
+        if (firstNote) {
+            oldspecL = &oldvalue;
+            *oldspecL = *specL;
+            //fmodchn->getWaveData( specR, SPECLEN, 1);
+            firstNote=false;
+            //cout << "one time" << endl;
+        }
+        //cout << "this getWaveData: " << *specL << endl;
+        //cout << "old getWaveData: " << *oldspecL << endl;
+        //cout << "difference: " << *oldspecL-*specL << endl;
+        // large change in volume signals the beat?
+        if ((*oldspecL-*specL) > .55) { // chose an arbitrary, experimentally determined value
+            //cout << "*************************************" << endl;
+            //cout << "\nBEAT\n" << endl;
+            //cout << "*************************************" << endl;
+            vec3 test = (frameCount % 2) ? vec3(0.5, 0, 0) : vec3(-0.5, 0, 0);
+            skel->inverseKinematics(1, test, ik_mode);
+            skel->updateSkin(*mesh);
+        }
+        *oldspecL = *specL;
+    } 
+    else {
+        memset( specL, 0, SPECLEN*sizeof(float) );
+        memset( specR, 0, SPECLEN*sizeof(float) );  
+    };
+    /*************************************************
+     END OF BEAT DETECTION STUFF
+    *************************************************/
 	
 	//Clear Buffers
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -127,18 +127,15 @@ void display() {
 	glutSwapBuffers();
 	
 	if (savingImages) {
-        //cout << "endFrameCount: " << endFrameCount << endl;
-	    if (frameCount < endFrameCount) {
-            //cout << "frameCount: " << frameCount << endl;
+	    if (frameCount < endFrameCount)
             imgSaver->saveFrame();
-        }
         else
             savingImages = false;
 	}
 }
 
 
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 /// \brief	Called when the screen gets resized.
 /// This gives you the opportunity to set up all the relevant transforms.
 ///
@@ -154,8 +151,7 @@ void reshape(int w, int h) {
 	glLoadIdentity();
 }
 
-
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 /// Called to handle keyboard events.
 void myKeyboardFunc (unsigned char key, int x, int y) {
 	switch (key) {
@@ -164,7 +160,7 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
 			break;
         case 'S':
         case 's':
-    	    imgSaver->saveFrame();
+            imgSaver->saveFrame();
             break;
         case 'a': // add a frame to your animation
         case 'A':
@@ -188,10 +184,10 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             savingImages = true;
             endFrameCount = frameCount + 100;
             break;
-		case ' ':
-			music_paused = !music_paused;
-			fmodchn->setPaused(music_paused);
-			break;
+        case ' ':
+            music_paused = !music_paused;
+            fmodchn->setPaused(music_paused);
+            break;
 	}
 }
 
@@ -209,11 +205,12 @@ void setJointsByAnimation(int x) {
     }
 }
 
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 /// Called whenever the mouse moves while a button is pressed
 void myActiveMotionFunc(int x, int y) {
     if (ikJoint != -1 && !playanim) { // if a joint is selected for ik and we're not in animation playback mode, do ik
         vec3 target = skel->getPos(vec2(x,y), ikDepth);
+        //cout << target << endl;
         skel->inverseKinematics(ikJoint, target, ik_mode);
         skel->updateSkin(*mesh);
     } else { // else mouse movements update the view
@@ -230,11 +227,9 @@ void myActiveMotionFunc(int x, int y) {
         viewport.mousePos = newMouse;
     }
     
-
     //Force a redraw of the window.
     glutPostRedisplay();
 }
-
 
 //-------------------------------------------------------------------------------
 /// Called whenever the mouse moves without any buttons pressed.
@@ -250,7 +245,7 @@ void myPassiveMotionFunc(int x, int y) {
     glutPostRedisplay();
 }
 
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 /// Called to update the screen at 30 fps.
 void frameTimer(int value) {
     frameCount++;
@@ -258,9 +253,7 @@ void frameTimer(int value) {
     glutTimerFunc(1000/30, frameTimer, 1);
 }
 
-
-
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void ERRCHECK(FMOD_RESULT result)
 {
     if (result != FMOD_OK)
@@ -270,29 +263,34 @@ void ERRCHECK(FMOD_RESULT result)
     }
 }
 
-//-----------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void initFMOD(char * path)
 {
- System_Create(&fmodsys);
- fmodsys->init(1,FMOD_INIT_NORMAL,0);
- cout << "\nfile: " << path << endl;
- fmodsys->createSound(path,
-			FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM,
-			0, &fmodsnd);
- fmodsys->playSound(FMOD_CHANNEL_FREE,fmodsnd,true,&fmodchn);
- specL = (float*)malloc(SPECLEN*sizeof(float));
- specR = (float*)malloc(SPECLEN*sizeof(float));
- //tmp
- unsigned int len;
- fmodchn->setVolume(1);
- fmodsnd->getLength( &len, FMOD_TIMEUNIT_MS );
- fmodchn->setPosition( (int)(len*0.0), FMOD_TIMEUNIT_MS );
+    System_Create(&fmodsys);
+    fmodsys->init(1,FMOD_INIT_NORMAL,0);
+    //cout << "\nfile: " << path << endl;
+    fmodsys->createSound(path,
+        FMOD_SOFTWARE | FMOD_2D | FMOD_CREATESTREAM,
+        0, &fmodsnd);
+    fmodsys->playSound(FMOD_CHANNEL_FREE,fmodsnd,true,&fmodchn);
+    specL = (float*)malloc(SPECLEN*sizeof(float));
+    specR = (float*)malloc(SPECLEN*sizeof(float));
+    //tmp
+    unsigned int len;
+    fmodchn->setVolume(1);
+    fmodsnd->getLength( &len, FMOD_TIMEUNIT_MS );
+    fmodchn->setPosition( (int)(len*0.0), FMOD_TIMEUNIT_MS );
 };
 
 
 
 /// Initialize the environment
 int main(int argc,char** argv) {
+    if (argc < 2) {
+        cout << "Usage: keepon [audio file]" << endl;
+        exit(1);
+    }
+    
 	//Initialize OpenGL
 	glutInit(&argc,argv);
 	glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGBA|GLUT_DEPTH);
@@ -366,9 +364,10 @@ int main(int argc,char** argv) {
 	/*************************************************
 	 GET YOUR GROOVE ON -- MUSACK INITIALIZED HERE
 	*************************************************/
-	cout << "Initialize sounds :" << argv[1]; // provide .mp3 file as first argument
+    cout << "Now loading: " << argv[1] << endl;
 	initFMOD( argv[1] );
 	fmodchn->setPaused(music_paused);
+	
 	glutMainLoop();
 	
 	/*************************************************
