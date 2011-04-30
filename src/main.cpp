@@ -65,11 +65,11 @@ void setupView() {
 
 //----------------------------------------------------------------------------
 /// You will be calling all of your drawing-related code from this function.
-/// Nowhere else in your code should you use glBegin(...) and glEnd() except code
-/// called from this method.
+/// Nowhere else in your code should you use glBegin(...) and glEnd() except
+/// code called from this method.
 ///
-/// To force a redraw of the screen (eg. after mouse events or the like) simply call
-/// glutPostRedisplay();
+/// To force a redraw of the screen (eg. after mouse events or the like)
+/// simply call glutPostRedisplay();
 void display() {
     /*************************************************
      BEAT DETECTION STUFF HERE FOR NOW
@@ -231,7 +231,7 @@ void myActiveMotionFunc(int x, int y) {
     glutPostRedisplay();
 }
 
-//-------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 /// Called whenever the mouse moves without any buttons pressed.
 void myPassiveMotionFunc(int x, int y) {
     ikJoint = -1;

@@ -32,8 +32,8 @@
 #include "UCB/ImageSaver.h"
 
 // music related headers to include
-#include "fmod/api/inc/fmod.hpp"
-#include "fmod/api/inc/fmod_errors.h"
+#include "../lib/fmod/api/inc/fmod.hpp"
+#include "../lib/fmod/api/inc/fmod_errors.h"
 #include <stdio.h>
 
 
