@@ -1,4 +1,5 @@
 #include "main.h"
+#include <queue>
 
 using namespace FMOD;
 using namespace std;
@@ -31,7 +32,9 @@ float *oldspecL;
 float oldvalue;
 bool firstNote=true;
 bool music_paused=false;
-#define SPECLEN 256
+queue<float> localSamples;
+float localSoundEnergy = 0.0;
+#define SPECLEN 1024
 
 // these variables track which joint is under IK, and where
 int ikJoint;
@@ -64,6 +67,66 @@ void setupView() {
 }
 
 //----------------------------------------------------------------------------
+void updateLocalSamples()
+{
+    for (int iter = 0; iter < SPECLEN; iter++) {
+        if (localSamples.size() >= 43 * SPECLEN) {
+            localSoundEnergy -= abs(localSamples.front());
+            localSamples.pop();
+        }
+        localSoundEnergy += abs(specL[iter] + specR[iter]);
+        localSamples.push(abs(specL[iter] + specR[iter]));
+    }
+}
+
+void parseMusic()
+{
+     bool paused;
+     fmodchn->getPaused( &paused );
+     if ( !paused ) {
+        // frequency domain data
+        //fmodchn->getSpectrum(specL, SPECLEN, 0, FMOD_DSP_FFT_WINDOW_BLACKMAN);
+        //fmodchn->getSpectrum(specR, SPECLEN, 1, FMOD_DSP_FFT_WINDOW_BLACKMAN);
+        
+        // time domain data
+        fmodchn->getWaveData(specL, SPECLEN, 0);
+        fmodchn->getWaveData(specR, SPECLEN, 1);
+        
+        // treat the first note differently
+        if (firstNote) {
+            oldspecL = &oldvalue;
+            *oldspecL = *specL;
+            firstNote=false;
+        }
+        
+        // Beat can be measured by checking a sample for
+        // (instant sound energy - local average sound energy)
+        // and checking if the deviation is significant.
+        // http://www.flipcode.com/misc/BeatDetectionAlgorithms.pdf
+        updateLocalSamples();
+        if (localSamples.size() >= 43 * SPECLEN) {
+            float instantSoundEnergy = 0.0;
+            for (int iter = 0; iter < SPECLEN; iter++)
+                instantSoundEnergy += abs(specL[iter] + specR[iter]);
+            cout << "----------------" << endl;
+
+            // Beat detection!
+            if (instantSoundEnergy > localSoundEnergy * 2.5 * 1024 / 44100) {
+                //cout << "*************************************" << endl;
+                cout << "\nBEAT\n" << endl;
+                //cout << "*************************************" << endl;
+                //vec3 test = (frameCount % 2) ? vec3(0.5, 0, 0) : vec3(-0.5, 0, 0);
+                //skel->inverseKinematics(1, test, ik_mode);
+                //skel->updateSkin(*mesh);
+            }
+        }
+    } else {
+        memset( specL, 0, SPECLEN*sizeof(float) );
+        memset( specR, 0, SPECLEN*sizeof(float) );  
+    };
+}
+
+//----------------------------------------------------------------------------
 /// You will be calling all of your drawing-related code from this function.
 /// Nowhere else in your code should you use glBegin(...) and glEnd() except
 /// code called from this method.
@@ -71,67 +134,26 @@ void setupView() {
 /// To force a redraw of the screen (eg. after mouse events or the like)
 /// simply call glutPostRedisplay();
 void display() {
-    /*************************************************
-     BEAT DETECTION STUFF HERE FOR NOW
-    *************************************************/
-     bool playing;
-     fmodchn->getPaused( &playing );
-     if ( !playing ) {
-        // frequency domain data
-        //fmodchn->getSpectrum( specL, SPECLEN, 0, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
-        //fmodchn->getSpectrum( specR, SPECLEN, 1, FMOD_DSP_FFT_WINDOW_BLACKMAN ); 
-        // time domain data
-        fmodchn->getWaveData( specL, SPECLEN, 0);
-        // treat the first note differently
-        if (firstNote) {
-            oldspecL = &oldvalue;
-            *oldspecL = *specL;
-            //fmodchn->getWaveData( specR, SPECLEN, 1);
-            firstNote=false;
-            //cout << "one time" << endl;
-        }
-        //cout << "this getWaveData: " << *specL << endl;
-        //cout << "old getWaveData: " << *oldspecL << endl;
-        //cout << "difference: " << *oldspecL-*specL << endl;
-        // large change in volume signals the beat?
-        if ((*oldspecL-*specL) > .55) { // chose an arbitrary, experimentally determined value
-            //cout << "*************************************" << endl;
-            //cout << "\nBEAT\n" << endl;
-            //cout << "*************************************" << endl;
-            vec3 test = (frameCount % 2) ? vec3(0.5, 0, 0) : vec3(-0.5, 0, 0);
-            skel->inverseKinematics(1, test, ik_mode);
-            skel->updateSkin(*mesh);
-        }
-        *oldspecL = *specL;
-    } 
-    else {
-        memset( specL, 0, SPECLEN*sizeof(float) );
-        memset( specR, 0, SPECLEN*sizeof(float) );  
-    };
-    /*************************************************
-     END OF BEAT DETECTION STUFF
-    *************************************************/
-	
-	//Clear Buffers
+    //Clear Buffers
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
     setupView();
-    
+    parseMusic();
     mesh->render();
 
     if (!playanim) { // if not playing an animation draw the skeleton
         skel->render(ikJoint);
     }
 
-	//Now that we've drawn on the buffer, swap the drawing buffer and the displaying buffer.
-	glutSwapBuffers();
-	
-	if (savingImages) {
-	    if (frameCount < endFrameCount)
+    //Now that we've drawn on the buffer, swap the drawing buffer and the displaying buffer.
+    glutSwapBuffers();
+    
+    if (savingImages) {
+        if (frameCount < endFrameCount)
             imgSaver->saveFrame();
         else
             savingImages = false;
-	}
+    }
 }
 
 
@@ -282,7 +304,7 @@ void initFMOD(char * path)
     fmodchn->setPosition( (int)(len*0.0), FMOD_TIMEUNIT_MS );
 };
 
-
+//----------------------------------------------------------------------------
 
 /// Initialize the environment
 int main(int argc,char** argv) {
@@ -359,7 +381,8 @@ int main(int argc,char** argv) {
     // note the .out files loaded above were made using pinocchio
     //  -- a neat free tool for auto-skinning a mesh
     // get it here: http://www.mit.edu/~ibaran/autorig/pinocchio.html
-    // you can use it to easily replace the default mesh with a mesh of your own making
+    // you can use it to easily replace the default mesh with a mesh
+    // of your own making
 
 	/*************************************************
 	 GET YOUR GROOVE ON -- MUSACK INITIALIZED HERE
