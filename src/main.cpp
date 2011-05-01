@@ -111,13 +111,13 @@ void parseMusic()
             cout << "----------------" << endl;
 
             // Beat detection!
-            if (instantSoundEnergy > localSoundEnergy * 2.5 * 1024 / 44100) {
+            if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
                 //cout << "*************************************" << endl;
                 cout << "\nBEAT\n" << endl;
                 //cout << "*************************************" << endl;
-                //vec3 test = (frameCount % 2) ? vec3(0.5, 0, 0) : vec3(-0.5, 0, 0);
-                //skel->inverseKinematics(1, test, ik_mode);
-                //skel->updateSkin(*mesh);
+                vec3 test = (frameCount % 2) ? vec3(0, 0.42, 0.2) : vec3(0, 0.42, -0.2);
+                skel->inverseKinematics(2, test, ik_mode);
+                skel->updateSkin(*mesh);
             }
         }
     } else {
