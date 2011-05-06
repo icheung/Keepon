@@ -92,6 +92,10 @@ public:
 
     // do ik to put the given joint index at the given position
     void inverseKinematics(int j, vec3 pos, int mode);
+	
+	// rotate skeleton
+	void rotate(int j);
+
     // get chain of joints from j to root, useful for ik
     vector<Joint*> getChain(int j);
     // update just the positions and frames in the given chain

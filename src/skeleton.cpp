@@ -4,8 +4,13 @@
 #include <string>
 #include <sstream>
 
+#define _USE_MATH_DEFINES
+
 void Animation::setJoints(vector<Joint> &joints, double frame) {
     // TODO: Set joints by interpolating frames
+
+	// If the mouse moves offscreen to the right, take quats from last frame.
+	// range of x, is from 0 to number of frames -1 (remember: orientations.size() == number of frames)
     if (frame >= orientations.size() - 1) {
         vector<quat> offScreen = orientations.back();
         unsigned int iter;
@@ -58,6 +63,34 @@ void Skeleton::inverseKinematics(int j, vec3 pos, int method) {
     }
 }
 
+// rotate skeleton
+void Skeleton::rotate(int j){ // joint
+	vector<Joint*> chain = getChain(j);
+	Joint * base_joint = chain.at(2); // base
+	Joint * head_joint = chain.at(0); // head
+	
+	cout << "Rotated Skeleton"<<endl;
+
+	// default 45 degrees
+	vec3 start = vec3(0.0,0.0,1.0);
+	vec3 end = vec3(1.0,0.0,0.0);
+	// spin keepon
+	quat tQuat;
+	tQuat = quat::getRotation(start.normalize(),end.normalize());
+
+	// headbang 45
+	vec3 hstart,hend;
+	hstart = vec3(0.0,1.0,0.0);
+	hend = vec3(0.0,0.0,1.0);
+	
+	// headbang keepon
+	quat hQuat;
+	hQuat = quat::getRotation(hstart.normalize(),hend.normalize());
+	
+	base_joint->orient = tQuat * base_joint->orient; // turn keepon at the base
+	head_joint->orient = hQuat * head_joint->orient; // headbang keepon
+	updateChainFrames(chain);
+}
 
 void Skeleton::updateSkin(Mesh &mesh) {
     updateJointPosnAndFrame(root);

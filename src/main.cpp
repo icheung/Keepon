@@ -116,8 +116,9 @@ void parseMusic()
                 cout << "\nBEAT\n" << endl;
                 //cout << "*************************************" << endl;
                 vec3 test = (frameCount % 2) ? vec3(0, 0.42, 0.2) : vec3(0, 0.42, -0.2);
-                skel->inverseKinematics(2, test, ik_mode);
-                skel->updateSkin(*mesh);
+                //skel->inverseKinematics(2, test, ik_mode);
+				//skel->rotate(2); // pass in joint furtherst from root for now
+                //skel->updateSkin(*mesh);
             }
         }
     } else {
@@ -210,6 +211,14 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             music_paused = !music_paused;
             fmodchn->setPaused(music_paused);
             break;
+		case 'h':
+			//cout << "q pressed"<< endl;
+			skel->rotate(2);
+			skel->updateSkin(*mesh);
+			break;
+		//case 't':
+		//	skel->rotate(2,'t');
+		//	break;
 	}
 }
 

@@ -416,7 +416,8 @@ public:
  *																*
  ****************************************************************/
 class quat {
-protected:
+//protected:
+public:
     double a;
     vec3 v;
 
