@@ -63,32 +63,34 @@ void Skeleton::inverseKinematics(int j, vec3 pos, int method) {
     }
 }
 
-// rotate skeleton
-void Skeleton::rotate(int j){ // joint
-	vector<Joint*> chain = getChain(j);
-	Joint * base_joint = chain.at(2); // base
-	Joint * head_joint = chain.at(0); // head
-	
-	cout << "Rotated Skeleton"<<endl;
+/*** DANCE MOVES! ***/
 
-	// default 45 degrees
+void Skeleton::headbang()
+{
+    vector<Joint*> chain = getChain(2);
+    Joint * head_joint = chain.at(0); // head
+    
+    // headbang 90 degrees downward
+    vec3 hstart, hend;
+    hstart = vec3(0.0,1.0,0.0);
+    hend = vec3(0.0,0.0,1.0);
+    
+    quat hQuat = quat::getRotation(hstart.normalize(),hend.normalize());
+    head_joint->orient = hQuat * head_joint->orient;
+    updateChainFrames(chain);
+}
+
+void Skeleton::rotate()
+{
+	vector<Joint*> chain = getChain(0);
+	Joint * base_joint = chain.at(0); // base
+	
+	// default 90 degrees clockwise
 	vec3 start = vec3(0.0,0.0,1.0);
 	vec3 end = vec3(1.0,0.0,0.0);
-	// spin keepon
-	quat tQuat;
-	tQuat = quat::getRotation(start.normalize(),end.normalize());
-
-	// headbang 45
-	vec3 hstart,hend;
-	hstart = vec3(0.0,1.0,0.0);
-	hend = vec3(0.0,0.0,1.0);
 	
-	// headbang keepon
-	quat hQuat;
-	hQuat = quat::getRotation(hstart.normalize(),hend.normalize());
-	
-	base_joint->orient = tQuat * base_joint->orient; // turn keepon at the base
-	head_joint->orient = hQuat * head_joint->orient; // headbang keepon
+	quat tQuat = quat::getRotation(start.normalize(),end.normalize());
+	base_joint->orient = tQuat * base_joint->orient;
 	updateChainFrames(chain);
 }
 

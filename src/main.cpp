@@ -112,10 +112,8 @@ void parseMusic()
 
             // Beat detection!
             if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
-                //cout << "*************************************" << endl;
                 cout << "\nBEAT\n" << endl;
-                //cout << "*************************************" << endl;
-                vec3 test = (frameCount % 2) ? vec3(0, 0.42, 0.2) : vec3(0, 0.42, -0.2);
+                //vec3 test = (frameCount % 2) ? vec3(0, 0.42, 0.2) : vec3(0, 0.42, -0.2);
                 //skel->inverseKinematics(2, test, ik_mode);
 				//skel->rotate(2); // pass in joint furtherst from root for now
                 //skel->updateSkin(*mesh);
@@ -211,15 +209,15 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             music_paused = !music_paused;
             fmodchn->setPaused(music_paused);
             break;
-		case 'h':
-			//cout << "q pressed"<< endl;
-			skel->rotate(2);
-			skel->updateSkin(*mesh);
-			break;
-		//case 't':
-		//	skel->rotate(2,'t');
-		//	break;
-	}
+        case 'h':
+            skel->headbang();
+            skel->updateSkin(*mesh);
+            break;
+        case 't':
+            skel->rotate();
+            skel->updateSkin(*mesh);
+            break;
+    }
 }
 
 void myMouseFunc(int button, int state, int x, int y) {
