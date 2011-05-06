@@ -48,6 +48,8 @@ int ik_mode = IK_CCD;
 bool savingImages = false;
 int endFrameCount = 0;
 
+double globalT = 0.0;
+
 // A simple helper function to load a mat4 into opengl
 void applyMat4(mat4 &m) {
 	double glmat[16];
@@ -108,14 +110,11 @@ void parseMusic()
             float instantSoundEnergy = 0.0;
             for (int iter = 0; iter < SPECLEN; iter++)
                 instantSoundEnergy += abs(specL[iter] + specR[iter]);
-            cout << "----------------" << endl;
+            //cout << "----------------" << endl;
 
             // Beat detection!
             if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
-                cout << "\nBEAT\n" << endl;
-                //vec3 test = (frameCount % 2) ? vec3(0, 0.42, 0.2) : vec3(0, 0.42, -0.2);
-                //skel->inverseKinematics(2, test, ik_mode);
-				//skel->rotate(2); // pass in joint furtherst from root for now
+                //cout << "\nBEAT\n" << endl;
                 //skel->updateSkin(*mesh);
             }
         }
@@ -216,6 +215,17 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
         case 't':
             skel->rotate();
             skel->updateSkin(*mesh);
+            break;
+        case 'd':
+            //dance
+            //for (double t = 0.0; t < 1.0; t += 0.1) {
+                skel->dance(*anim, *mesh, globalT);
+                glutPostRedisplay();
+            //}
+            //anim->clear();
+            // REMOVE GLOBALT
+            if (globalT < 1.0)
+                globalT += 0.1;
             break;
     }
 }

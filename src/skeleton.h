@@ -63,6 +63,8 @@ struct Animation
         }
         // you may want to save more data here, eg if you root position if you animate that
     }
+    
+    void playback(vector<Joint> &joints, double interp);
 
     void clear() { orientations.clear(); }
 };
@@ -93,6 +95,8 @@ public:
     // do ik to put the given joint index at the given position
     void inverseKinematics(int j, vec3 pos, int mode);
 	
+    void dance(Animation &a, Mesh &mesh, double t);
+    
 	// Dance moves!
     void headbang();
 	void rotate();

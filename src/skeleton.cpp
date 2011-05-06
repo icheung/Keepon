@@ -63,6 +63,34 @@ void Skeleton::inverseKinematics(int j, vec3 pos, int method) {
     }
 }
 
+void Skeleton::dance(Animation &a, Mesh &mesh, double t){
+    if (t == 0.0) {
+        // set frame1
+        a.addAsFrame(getJointArray());
+        headbang();
+        // set frame2
+        a.addAsFrame(getJointArray());
+    }
+    // playback frame1 to frame2
+    //for (double t = 0.0; t < 1.0; t+= 0.1) {
+        //cout << t << endl;
+        a.playback(getJointArray(), t);
+        updateSkin(mesh);
+        
+        //Force a redraw of the window.
+        //glutPostRedisplay();
+    //}
+    //a.clear();
+}
+
+// helper
+void Animation::playback(vector<Joint> &joints, double interp) {
+    if (orientations.size() > 1) {
+        double t = double(orientations.size()-1) * interp;
+        setJoints(joints, t);
+    }
+}
+
 /*** DANCE MOVES! ***/
 
 void Skeleton::headbang()
