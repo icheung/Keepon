@@ -67,20 +67,14 @@ void Skeleton::dance(Animation &a, Mesh &mesh, double t){
     if (t == 0.0) {
         // set frame1
         a.addAsFrame(getJointArray());
-        headbang();
+
         // set frame2
+        rotate();
         a.addAsFrame(getJointArray());
     }
-    // playback frame1 to frame2
-    //for (double t = 0.0; t < 1.0; t+= 0.1) {
-        //cout << t << endl;
-        a.playback(getJointArray(), t);
-        updateSkin(mesh);
-        
-        //Force a redraw of the window.
-        //glutPostRedisplay();
-    //}
-    //a.clear();
+
+    a.playback(getJointArray(), t);
+    updateSkin(mesh);
 }
 
 // helper

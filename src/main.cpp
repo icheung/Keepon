@@ -216,17 +216,6 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             skel->rotate();
             skel->updateSkin(*mesh);
             break;
-        case 'd':
-            //dance
-            //for (double t = 0.0; t < 1.0; t += 0.1) {
-                skel->dance(*anim, *mesh, globalT);
-                glutPostRedisplay();
-            //}
-            //anim->clear();
-            // REMOVE GLOBALT
-            if (globalT < 1.0)
-                globalT += 0.1;
-            break;
     }
 }
 
@@ -241,6 +230,26 @@ void setJointsByAnimation(int x) {
         double t = double(anim->orientations.size()-1) * double(x)/double(glutGet(GLUT_WINDOW_WIDTH));
         anim->setJoints(skel->getJointArray(), t);
         skel->updateSkin(*mesh);
+    }
+}
+
+//----------------------------------------------------------------------------
+/// Called in an idle loop.
+void animate()
+{
+    if (playanim) {
+        //for (double t = 0.0; t < 1.0; t += 0.01) {
+            skel->dance(*anim, *mesh, globalT);
+            //skel->dance(*anim, *mesh, t);
+            glutPostRedisplay();
+        //}
+        
+        // REMOVE GLOBALT
+        if (globalT >= 1.0) {
+             globalT = 0.0;
+             anim->clear();
+        } else
+            globalT += 0.01;
     }
 }
 
@@ -352,7 +361,8 @@ int main(int argc,char** argv) {
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(myKeyboardFunc);
 	glutMotionFunc(myActiveMotionFunc);
-	glutPassiveMotionFunc(myPassiveMotionFunc);
+	//glutPassiveMotionFunc(myPassiveMotionFunc);
+    glutIdleFunc(animate);
     glutMouseFunc(myMouseFunc);
     frameTimer(0);
 
