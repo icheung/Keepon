@@ -208,14 +208,6 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             music_paused = !music_paused;
             fmodchn->setPaused(music_paused);
             break;
-        case 'h':
-            skel->headbang(true);
-            skel->updateSkin(*mesh);
-            break;
-        case 't':
-            skel->rotate(true);
-            skel->updateSkin(*mesh);
-            break;
     }
 }
 

@@ -101,7 +101,10 @@ public:
     
 	// Dance moves!
     void headbang(bool down);
+    void lean(bool forward);
 	void rotate(bool clockwise);
+    void tiltBody(bool left);
+    void tiltHead(bool left);
 
     // get chain of joints from j to root, useful for ik
     vector<Joint*> getChain(int j);

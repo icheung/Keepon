@@ -98,12 +98,26 @@ void Skeleton::headbang(bool down)
     vector<Joint*> chain = getChain(2);
     Joint * head_joint = chain.at(0); // head
     
-    // 30 degrees
-    vec3 hstart = (down) ? vec3(0.0,1.0,0.0) : vec3(0.0,0.866,0.5);
-    vec3 hend = (down) ? vec3(0.0,0.866,0.5) : vec3(0.0,1.0,0.0);
+    // 15 degrees
+    vec3 hstart = (down) ? vec3(0.0,1.0,0.0) : vec3(0.0,0.966,0.259);
+    vec3 hend = (down) ? vec3(0.0,0.966,0.259) : vec3(0.0,1.0,0.0);
     
     quat hQuat = quat::getRotation(hstart.normalize(),hend.normalize());
     head_joint->orient = hQuat * head_joint->orient;
+    updateChainFrames(chain);
+}
+
+void Skeleton::lean(bool forward)
+{
+    vector<Joint*> chain = getChain(1);
+    Joint * body_joint = chain.at(0); // body
+    
+    // 15 degrees
+    vec3 start = (forward) ? vec3(0.0,1.0,0.0) : vec3(0.0,0.966,0.259);
+    vec3 end = (forward) ? vec3(0.0,0.966,0.259) : vec3(0.0,1.0,0.0);
+    
+    quat q = quat::getRotation(start.normalize(),end.normalize());
+    body_joint->orient = q * body_joint->orient;
     updateChainFrames(chain);
 }
 
@@ -112,14 +126,44 @@ void Skeleton::rotate(bool clockwise)
     vector<Joint*> chain = getChain(0);
     Joint * base_joint = chain.at(0); // base
     
-    // 45 degrees
-    vec3 start = (clockwise) ? vec3(0.5,0.0,0.5) : vec3(0.0,0.0,1.0);
-    vec3 end = (clockwise) ? vec3(0.0,0.0,1.0) : vec3(0.5,0.0,0.5);
+    // 15 degrees
+    vec3 start = (clockwise) ? vec3(0.259,0.0,0.966) : vec3(0.0,0.0,1.0);
+    vec3 end = (clockwise) ? vec3(0.0,0.0,1.0) : vec3(0.259,0.0,0.966);
     
     quat tQuat = quat::getRotation(start.normalize(),end.normalize());
     base_joint->orient = tQuat * base_joint->orient;
     updateChainFrames(chain);
 }
+
+void Skeleton::tiltBody(bool left)
+{
+    vector<Joint*> chain = getChain(1);
+    Joint * body_joint = chain.at(0); // body
+    
+    // 15 degrees
+    vec3 start = (left) ? vec3(0.0,1.0,0.0) : vec3(-0.259,0.966,0.0);
+    vec3 end = (left) ? vec3(-0.259,0.966,0.0) : vec3(0.0,1.0,0.0);
+    
+    quat q = quat::getRotation(start.normalize(),end.normalize());
+    body_joint->orient = q * body_joint->orient;
+    updateChainFrames(chain);
+}
+
+void Skeleton::tiltHead(bool left)
+{
+    vector<Joint*> chain = getChain(2);
+    Joint * head_joint = chain.at(0); // head
+    
+    // 15 degrees
+    vec3 start = (left) ? vec3(0.0,1.0,0.0) : vec3(-0.259,0.966,0.0);
+    vec3 end = (left) ? vec3(-0.259,0.966,0.0) : vec3(0.0,1.0,0.0);
+    
+    quat q = quat::getRotation(start.normalize(),end.normalize());
+    head_joint->orient = q * head_joint->orient;
+    updateChainFrames(chain);
+}
+
+/*** END OF DANCE MOVES ***/
 
 void Skeleton::updateSkin(Mesh &mesh) {
     updateJointPosnAndFrame(root);
