@@ -64,6 +64,8 @@ struct Animation
         // you may want to save more data here, eg if you root position if you animate that
     }
     
+    int numFrames() { return orientations.size(); }
+    
     void playback(vector<Joint> &joints, double interp);
 
     void clear() { orientations.clear(); }
@@ -98,8 +100,8 @@ public:
     void dance(Animation &a, Mesh &mesh, double t);
     
 	// Dance moves!
-    void headbang();
-	void rotate();
+    void headbang(bool down);
+	void rotate(bool clockwise);
 
     // get chain of joints from j to root, useful for ik
     vector<Joint*> getChain(int j);
