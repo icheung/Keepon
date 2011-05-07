@@ -69,7 +69,13 @@ void Skeleton::dance(Animation &a, Mesh &mesh, double t){
         a.addAsFrame(getJointArray());
 
         // set frame2
-        rotate();
+        rotate(true);
+        headbang(true);
+        a.addAsFrame(getJointArray());
+        
+        // set frame3
+        rotate(false);
+        headbang(false);
         a.addAsFrame(getJointArray());
     }
 
@@ -87,33 +93,32 @@ void Animation::playback(vector<Joint> &joints, double interp) {
 
 /*** DANCE MOVES! ***/
 
-void Skeleton::headbang()
+void Skeleton::headbang(bool down)
 {
     vector<Joint*> chain = getChain(2);
     Joint * head_joint = chain.at(0); // head
     
-    // headbang 90 degrees downward
-    vec3 hstart, hend;
-    hstart = vec3(0.0,1.0,0.0);
-    hend = vec3(0.0,0.0,1.0);
+    // 30 degrees
+    vec3 hstart = (down) ? vec3(0.0,1.0,0.0) : vec3(0.0,0.866,0.5);
+    vec3 hend = (down) ? vec3(0.0,0.866,0.5) : vec3(0.0,1.0,0.0);
     
     quat hQuat = quat::getRotation(hstart.normalize(),hend.normalize());
     head_joint->orient = hQuat * head_joint->orient;
     updateChainFrames(chain);
 }
 
-void Skeleton::rotate()
+void Skeleton::rotate(bool clockwise)
 {
-	vector<Joint*> chain = getChain(0);
-	Joint * base_joint = chain.at(0); // base
-	
-	// default 90 degrees clockwise
-	vec3 start = vec3(0.0,0.0,1.0);
-	vec3 end = vec3(1.0,0.0,0.0);
-	
-	quat tQuat = quat::getRotation(start.normalize(),end.normalize());
-	base_joint->orient = tQuat * base_joint->orient;
-	updateChainFrames(chain);
+    vector<Joint*> chain = getChain(0);
+    Joint * base_joint = chain.at(0); // base
+    
+    // 45 degrees
+    vec3 start = (clockwise) ? vec3(0.5,0.0,0.5) : vec3(0.0,0.0,1.0);
+    vec3 end = (clockwise) ? vec3(0.0,0.0,1.0) : vec3(0.5,0.0,0.5);
+    
+    quat tQuat = quat::getRotation(start.normalize(),end.normalize());
+    base_joint->orient = tQuat * base_joint->orient;
+    updateChainFrames(chain);
 }
 
 void Skeleton::updateSkin(Mesh &mesh) {

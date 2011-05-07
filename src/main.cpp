@@ -110,11 +110,11 @@ void parseMusic()
             float instantSoundEnergy = 0.0;
             for (int iter = 0; iter < SPECLEN; iter++)
                 instantSoundEnergy += abs(specL[iter] + specR[iter]);
-            //cout << "----------------" << endl;
 
             // Beat detection!
+            //cout << "----------------" << endl;
             if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
-                //cout << "\nBEAT\n" << endl;
+                //cout << "BEAT" << endl;
                 //skel->updateSkin(*mesh);
             }
         }
@@ -209,11 +209,11 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             fmodchn->setPaused(music_paused);
             break;
         case 'h':
-            skel->headbang();
+            skel->headbang(true);
             skel->updateSkin(*mesh);
             break;
         case 't':
-            skel->rotate();
+            skel->rotate(true);
             skel->updateSkin(*mesh);
             break;
     }
@@ -245,7 +245,7 @@ void animate()
         //}
         
         // REMOVE GLOBALT
-        if (globalT >= 1.0) {
+        if (globalT >= double(anim->numFrames() - 1)) {
              globalT = 0.0;
              anim->clear();
         } else
