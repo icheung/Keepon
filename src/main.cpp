@@ -111,10 +111,14 @@ void parseMusic()
             for (int iter = 0; iter < SPECLEN; iter++)
                 instantSoundEnergy += abs(specL[iter] + specR[iter]);
 
+			//if (!pickedSequence)
+			// plug sound data into dance()
+			// convertSoundDataToFraction()
+
             // Beat detection!
-            //cout << "----------------" << endl;
+            cout << "----------------" << endl;
             if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
-                //cout << "BEAT" << endl;
+                cout << "BEAT" << endl;
                 //skel->updateSkin(*mesh);
             }
         }
@@ -240,6 +244,7 @@ void animate()
         if (globalT >= double(anim->numFrames() - 1)) {
              globalT = 0.0;
              anim->clear();
+			//pickedSequence = false; // pseudocode
         } else
             globalT += 0.01;
     }

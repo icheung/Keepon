@@ -65,6 +65,7 @@ void Skeleton::inverseKinematics(int j, vec3 pos, int method) {
 
 void Skeleton::dance(Animation &a, Mesh &mesh, double t){
     if (t == 0.0) {
+	
         // set frame1
         a.addAsFrame(getJointArray());
 
@@ -77,8 +78,29 @@ void Skeleton::dance(Animation &a, Mesh &mesh, double t){
         rotate(false);
         headbang(false);
         a.addAsFrame(getJointArray());
-    }
-
+	}
+		/* pseudocode
+		dance moves = []
+		for (num_frames=0; num_frames< 5 ;num_frames++) {
+			for (steps=0; steps< ? ;steps++) {
+				look at musical property measure loudness l
+				choose (random A through F) based on loudness, etc. pass l to step
+					A (headbang, l)
+					case(a-f):
+						a:
+							headbang(t/f, l);
+						b:
+							lean();
+						c:
+							tilt();
+					append dance move to list
+				}
+	
+			dance the dance moves
+			add dance moves to frame
+    	}
+		pickedSequence = true;
+		*/
     a.playback(getJointArray(), t);
     updateSkin(mesh);
 }
