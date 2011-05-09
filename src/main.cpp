@@ -1,5 +1,5 @@
 #include "main.h"
-#include <queue>
+#include <list>
 
 using namespace FMOD;
 using namespace std;
@@ -32,9 +32,12 @@ float *oldspecL;
 float oldvalue;
 bool firstNote=true;
 bool music_paused=false;
-queue<float> localSamples;
-float localSoundEnergy = 0.0;
 #define SPECLEN 1024
+
+// beat detection
+list<float> localSamples;
+float localSoundEnergy = 0.0;
+float instantSoundEnergy = 0.0;
 
 // these variables track which joint is under IK, and where
 int ikJoint;
@@ -69,16 +72,43 @@ void setupView() {
 }
 
 //----------------------------------------------------------------------------
+/// Beats can be measured by checking a sample for
+/// (instant sound energy - local average sound energy)
+/// and checking if the deviation is significant.
+/// http://www.flipcode.com/misc/BeatDetectionAlgorithms.pdf
+
+float calculateAvg()
+{
+    return (localSoundEnergy / double(43 * SPECLEN));
+}
+
+float calculateVariance()
+{
+    float variance = 0.0;
+    float average = calculateAvg();
+    list<float>::iterator iter;
+    for (iter = localSamples.begin(); iter != localSamples.end(); iter++)
+        variance += pow(*iter - average, 2);
+    return (variance / 43.0);
+}
+
+float calculateConstant()
+{
+    return (-0.0025714 * calculateVariance() + 1.5142857);
+}
+
 void updateLocalSamples()
 {
+    instantSoundEnergy = 0.0;
     for (int iter = 0; iter < SPECLEN; iter++) {
         if (localSamples.size() >= 43 * SPECLEN) {
-            localSoundEnergy -= abs(localSamples.front());
-            localSamples.pop();
+            localSoundEnergy -= localSamples.front();
+            localSamples.pop_front();
         }
-        localSoundEnergy += abs(specL[iter] + specR[iter]);
-        localSamples.push(abs(specL[iter] + specR[iter]));
+        instantSoundEnergy += (pow(specL[iter], 2) + pow(specR[iter], 2));
+        localSamples.push_back(pow(specL[iter], 2) + pow(specR[iter], 2));
     }
+    localSoundEnergy += instantSoundEnergy;
 }
 
 void parseMusic()
@@ -101,26 +131,19 @@ void parseMusic()
             firstNote=false;
         }
         
-        // Beat can be measured by checking a sample for
-        // (instant sound energy - local average sound energy)
-        // and checking if the deviation is significant.
-        // http://www.flipcode.com/misc/BeatDetectionAlgorithms.pdf
         updateLocalSamples();
         if (localSamples.size() >= 43 * SPECLEN) {
-            float instantSoundEnergy = 0.0;
-            for (int iter = 0; iter < SPECLEN; iter++)
-                instantSoundEnergy += abs(specL[iter] + specR[iter]);
-
 			//if (!pickedSequence)
 			// plug sound data into dance()
 			// convertSoundDataToFraction()
 
             // Beat detection!
-            cout << "----------------" << endl;
-            if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
+            float c = calculateConstant();
+            if (instantSoundEnergy > c * localSoundEnergy / 43.0) {
                 cout << "BEAT" << endl;
                 //skel->updateSkin(*mesh);
-            }
+            } else
+                cout << "----------------" << endl;
         }
     } else {
         memset( specL, 0, SPECLEN*sizeof(float) );

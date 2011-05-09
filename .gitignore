@@ -6,4 +6,5 @@ keepon
 # Other stuff we don't want to commit #
 #######################################
 *.DS_Store
+*.mp3
 *.flac
