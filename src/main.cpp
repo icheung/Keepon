@@ -1,6 +1,5 @@
 #include "main.h"
-#include <queue>
-#include <time.h>
+#include <list>
 
 using namespace FMOD;
 using namespace std;
@@ -36,9 +35,15 @@ float *oldspecL;
 float oldvalue;
 bool firstNote=true;
 bool music_paused=false;
-queue<float> localSamples;
-float localSoundEnergy = 0.0;
 #define SPECLEN 1024
+
+// beat detection
+//list<float> localSamples;
+//float localSoundEnergy = 0.0;
+//float instantSoundEnergy = 0.0;
+list<float> subbands [32];
+float subbandDBs [32] = {0.0};
+float instantDBs [32] = {0.0};
 
 // these variables track which joint is under IK, and where
 int ikJoint;
@@ -73,15 +78,64 @@ void setupView() {
 }
 
 //----------------------------------------------------------------------------
+/// Beats can be measured by checking a sample for
+/// (instant sound energy - local average sound energy)
+/// and checking if the deviation is significant.
+/// http://www.flipcode.com/misc/BeatDetectionAlgorithms.pdf
+/*
+float calculateAvg()
+{
+    return (localSoundEnergy / double(43 * SPECLEN));
+}
+
+float calculateVariance()
+{
+    float variance = 0.0;
+    float average = calculateAvg();
+    list<float>::iterator iter;
+    for (iter = localSamples.begin(); iter != localSamples.end(); iter++)
+        variance += pow(*iter - average, 2);
+    return (variance / 43.0);
+}
+
+float calculateConstant()
+{
+    return (-0.0025714 * calculateVariance() + 1.5142857);
+}
+*/
 void updateLocalSamples()
 {
+    /*
+    instantSoundEnergy = 0.0;
     for (int iter = 0; iter < SPECLEN; iter++) {
         if (localSamples.size() >= 43 * SPECLEN) {
-            localSoundEnergy -= abs(localSamples.front());
-            localSamples.pop();
+            localSoundEnergy -= localSamples.front();
+            localSamples.pop_front();
         }
-        localSoundEnergy += abs(specL[iter] + specR[iter]);
-        localSamples.push(abs(specL[iter] + specR[iter]));
+        instantSoundEnergy += (pow(specL[iter], 2) + pow(specR[iter], 2));
+        localSamples.push_back(pow(specL[iter], 2) + pow(specR[iter], 2));
+    }
+    localSoundEnergy += instantSoundEnergy;
+    */
+    int previousBand = 0;
+    float currentSum = 0.0;
+    for (int iter = 0; iter < SPECLEN; iter++) {
+        int band = iter / 32;
+        if (band > previousBand || iter == SPECLEN - 1) {
+            // We actually skip the very last iter value.  Oh well.
+            float currentAvg = currentSum / float(SPECLEN / 32);
+            subbands[previousBand].push_back(currentAvg);
+            subbandDBs[previousBand] += currentAvg;
+            instantDBs[previousBand] = currentAvg;
+            
+            currentSum = 0.0;
+            previousBand = band;
+            if (subbands[band].size() >= 43) {
+                subbandDBs[band] -= subbands[band].front();
+                subbands[band].pop_front();
+            }
+        }
+        currentSum += (specL[iter] + specR[iter]) / 2.0;
     }
 }
 
@@ -91,12 +145,12 @@ void parseMusic()
      fmodchn->getPaused( &paused );
      if ( !paused ) {
         // frequency domain data
-        //fmodchn->getSpectrum(specL, SPECLEN, 0, FMOD_DSP_FFT_WINDOW_BLACKMAN);
-        //fmodchn->getSpectrum(specR, SPECLEN, 1, FMOD_DSP_FFT_WINDOW_BLACKMAN);
+        fmodchn->getSpectrum(specL, SPECLEN, 0, FMOD_DSP_FFT_WINDOW_BLACKMAN);
+        fmodchn->getSpectrum(specR, SPECLEN, 1, FMOD_DSP_FFT_WINDOW_BLACKMAN);
         
         // time domain data
-        fmodchn->getWaveData(specL, SPECLEN, 0);
-        fmodchn->getWaveData(specR, SPECLEN, 1);
+        //fmodchn->getWaveData(specL, SPECLEN, 0);
+        //fmodchn->getWaveData(specR, SPECLEN, 1);
         
         // treat the first note differently
         if (firstNote) {
@@ -105,23 +159,19 @@ void parseMusic()
             firstNote=false;
         }
         
-        // Beat can be measured by checking a sample for
-        // (instant sound energy - local average sound energy)
-        // and checking if the deviation is significant.
-        // http://www.flipcode.com/misc/BeatDetectionAlgorithms.pdf
         updateLocalSamples();
-        if (localSamples.size() >= 43 * SPECLEN) {
-            float instantSoundEnergy = 0.0;
-            for (int iter = 0; iter < SPECLEN; iter++)
-                instantSoundEnergy += abs(specL[iter] + specR[iter]);
-
+        if (subbands[0].size() >= 43) {
 			//if (!pickedSequence)
 			// plug sound data into dance()
 			// convertSoundDataToFraction()
 
             // Beat detection!
-            cout << "----------------" << endl;
-            if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
+            int successes = 0;
+            for (int i = 0; i < 43; i++) {
+                if (instantDBs[i] > subbandDBs[i] / 43.0)
+                    successes++;
+            }
+            if (successes >= 42) {
                 cout << "BEAT" << endl;
 				
 				// double avgBeatDuration = calculateAvgBeatDuration(); // TODO
@@ -130,7 +180,8 @@ void parseMusic()
 				//dance(avgBeatDuration);
 				
                 //skel->updateSkin(*mesh);
-            }
+            } else
+                cout << "----------------" << endl;
         }
     } else {
         memset( specL, 0, SPECLEN*sizeof(float) );
