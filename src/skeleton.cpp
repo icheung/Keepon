@@ -63,9 +63,12 @@ void Skeleton::inverseKinematics(int j, vec3 pos, int method) {
     }
 }
 
+
+
 void Skeleton::dance(Animation &a, Mesh &mesh, double t){
     if (t == 0.0) {
-	
+	/*
+		// old stuff
         // set frame1
         a.addAsFrame(getJointArray());
 
@@ -78,6 +81,21 @@ void Skeleton::dance(Animation &a, Mesh &mesh, double t){
         rotate(false);
         headbang(false);
         a.addAsFrame(getJointArray());
+	*/	
+		// iris stuff
+		// set frame1
+        a.addAsFrame(getJointArray());
+
+        // set frame2
+		for (int i=0;i<12;i++){
+        rotate(true);
+        a.addAsFrame(getJointArray());
+		}	
+
+		for (int i=0;i<12;i++){
+        rotate(false);
+        a.addAsFrame(getJointArray());
+		}
 	}
 		/* pseudocode
 		dance moves = []
@@ -156,6 +174,7 @@ void Skeleton::rotate(bool clockwise)
     base_joint->orient = tQuat * base_joint->orient;
     updateChainFrames(chain);
 }
+
 
 void Skeleton::tiltBody(bool left)
 {

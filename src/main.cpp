@@ -1,5 +1,6 @@
 #include "main.h"
 #include <queue>
+#include <time.h>
 
 using namespace FMOD;
 using namespace std;
@@ -21,6 +22,9 @@ int frameCount = 0;
 Mesh *mesh;
 Skeleton *skel;
 Animation *anim;
+
+// dance
+bool dancing=false;
 
 // music
 bool startedMusic=false;
@@ -119,6 +123,12 @@ void parseMusic()
             cout << "----------------" << endl;
             if (instantSoundEnergy > localSoundEnergy * 2 * 1024 / 44100) {
                 cout << "BEAT" << endl;
+				
+				// double avgBeatDuration = calculateAvgBeatDuration(); // TODO
+				//double avgBeatDuration = 0.5;  //
+				//dance = chooseDance();  // TODO
+				//dance(avgBeatDuration);
+				
                 //skel->updateSkin(*mesh);
             }
         }
@@ -175,6 +185,22 @@ void reshape(int w, int h) {
 	glLoadIdentity();
 }
 
+void wait(double seconds){
+	clock_t endwait;
+	endwait = clock()+seconds*CLOCKS_PER_SEC;
+	while(clock()<endwait){}
+}
+///--------------------------------------------
+void dance(double beatDurSec, double t)
+{	
+    if (playanim) {
+            skel->dance(*anim, *mesh, t);
+			cout << "t: " << t << endl;
+			wait(0.01);
+            glutPostRedisplay();
+    }
+}
+
 //----------------------------------------------------------------------------
 /// Called to handle keyboard events.
 void myKeyboardFunc (unsigned char key, int x, int y) {
@@ -212,6 +238,16 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             music_paused = !music_paused;
             fmodchn->setPaused(music_paused);
             break;
+		case 'd':
+			playanim = !playanim;
+			cout << "here" << endl;
+			for(double t=0.0;t<double(anim->numFrames() - 1);t+=0.01){
+			cout << "dance" << endl;
+			dance(0.5,t);
+			}
+			globalT = 0.0;
+            anim->clear();
+			break;
     }
 }
 
@@ -229,16 +265,16 @@ void setJointsByAnimation(int x) {
     }
 }
 
+
+
 //----------------------------------------------------------------------------
 /// Called in an idle loop.
 void animate()
 {
     if (playanim) {
-        //for (double t = 0.0; t < 1.0; t += 0.01) {
             skel->dance(*anim, *mesh, globalT);
-            //skel->dance(*anim, *mesh, t);
+			wait(0.01);
             glutPostRedisplay();
-        //}
         
         // REMOVE GLOBALT
         if (globalT >= double(anim->numFrames() - 1)) {
@@ -359,7 +395,7 @@ int main(int argc,char** argv) {
 	glutKeyboardFunc(myKeyboardFunc);
 	glutMotionFunc(myActiveMotionFunc);
 	//glutPassiveMotionFunc(myPassiveMotionFunc);
-    glutIdleFunc(animate);
+    //glutIdleFunc(animate);
     glutMouseFunc(myMouseFunc);
     frameTimer(0);
 
