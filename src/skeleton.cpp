@@ -65,70 +65,60 @@ void Skeleton::inverseKinematics(int j, vec3 pos, int method) {
 
 
 
-void Skeleton::dance(Animation &a, Mesh &mesh, double t){
-    if (t == 0.0) {
-	/*
-		// old stuff
-        // set frame1
-        a.addAsFrame(getJointArray());
-
-        // set frame2
-        rotate(true);
-        headbang(true);
-        a.addAsFrame(getJointArray());
-        
-        // set frame3
-        rotate(false);
-        headbang(false);
-        a.addAsFrame(getJointArray());
-	*/	
-		// iris stuff
-		// set frame1
-        a.addAsFrame(getJointArray());
-
-        // set frame2
-		for (int i=0;i<12;i++){
-        rotate(true);
-        a.addAsFrame(getJointArray());
-		}	
-
-		for (int i=0;i<12;i++){
-        rotate(false);
-        a.addAsFrame(getJointArray());
+void Skeleton::dance(Animation &a, Mesh &mesh, double t, bool changeMoves){
+	if (t == 0.0) {
+		a.clear();
+		resetPose();
+		
+		int m = rand() % 4;
+		switch (m) {
+			case 0:
+				a.addAsFrame(getJointArray());
+				rotate(true);
+				headbang(true);
+				a.addAsFrame(getJointArray());
+				rotate(false);
+				headbang(false);
+				a.addAsFrame(getJointArray());
+				break;
+			case 1:
+				a.addAsFrame(getJointArray());
+				for (int i=0;i<6;i++)
+					rotate(true);
+	    		a.addAsFrame(getJointArray());
+				for (int i=0;i<6;i++)
+					rotate(false);
+	    		a.addAsFrame(getJointArray());
+				break;
+			case 2:
+				a.addAsFrame(getJointArray());
+				tiltBody(true);
+				lean(true);
+	    		a.addAsFrame(getJointArray());
+				tiltBody(false);
+				lean(false);
+	    		a.addAsFrame(getJointArray());
+				break;
+			case 3:
+				a.addAsFrame(getJointArray());
+				tiltHead(false);
+				headbang(false);
+		   		a.addAsFrame(getJointArray());
+				tiltHead(true);
+				headbang(true);
+		   		a.addAsFrame(getJointArray());
+				break;		
 		}
 	}
-		/* pseudocode
-		dance moves = []
-		for (num_frames=0; num_frames< 5 ;num_frames++) {
-			for (steps=0; steps< ? ;steps++) {
-				look at musical property measure loudness l
-				choose (random A through F) based on loudness, etc. pass l to step
-					A (headbang, l)
-					case(a-f):
-						a:
-							headbang(t/f, l);
-						b:
-							lean();
-						c:
-							tilt();
-					append dance move to list
-				}
-	
-			dance the dance moves
-			add dance moves to frame
-    	}
-		pickedSequence = true;
-		*/
-    a.playback(getJointArray(), t);
+
+    if (a.numFrames() > 1)
+        a.setJoints(getJointArray(), t);
     updateSkin(mesh);
 }
 
 // helper
 void Animation::playback(vector<Joint> &joints, double interp) {
-    if (orientations.size() > 1) {
-        double t = double(orientations.size()-1) * interp;
-        setJoints(joints, t);
-    }
+
 }
 
 /*** DANCE MOVES! ***/

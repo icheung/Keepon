@@ -97,7 +97,7 @@ public:
     // do ik to put the given joint index at the given position
     void inverseKinematics(int j, vec3 pos, int mode);
 	
-    void dance(Animation &a, Mesh &mesh, double t);
+    void dance(Animation &a, Mesh &mesh, double t, bool changeMoves);
     
 	// Dance moves!
     void headbang(bool down);

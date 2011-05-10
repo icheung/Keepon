@@ -24,6 +24,7 @@ Animation *anim;
 
 // dance
 bool dancing=false;
+bool changeMove=false;
 
 // music
 bool startedMusic=false;
@@ -58,6 +59,8 @@ bool savingImages = false;
 int endFrameCount = 0;
 
 double globalT = 0.0;
+int numBeats = 0;
+int lastBeat = 0;
 
 // A simple helper function to load a mat4 into opengl
 void applyMat4(mat4 &m) {
@@ -75,6 +78,28 @@ void setupView() {
 	glLoadIdentity();
     glTranslatef(0,0,-3);
     applyMat4(viewport.orientation);
+}
+
+//----------------------------------------------------------------------------
+/// Called in an idle loop.
+void animate()
+{
+    if (playanim) {
+        skel->dance(*anim, *mesh, globalT, changeMove);
+		changeMove = false;
+		//wait(0.01);
+        glutPostRedisplay();
+        
+		//cout << "globalT: " << globalT << endl;
+		//cout << "numFrames: " << double(anim->numFrames() - 1) << endl;
+        // REMOVE GLOBALT
+        if (globalT >= double(anim->numFrames() - 1)) {
+			anim->clear(); // just for single moves
+             //globalT = 0.0;
+			//pickedSequence = false; // pseudocode
+        } else
+            globalT += 0.01;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -171,8 +196,29 @@ void parseMusic()
                 if (instantDBs[i] > subbandDBs[i] / 43.0)
                     successes++;
             }
-            if (successes >= 42) {
-                cout << "BEAT" << endl;
+			//cout << "successes: " << successes << endl;
+            if (successes >= 31 && frameCount - lastBeat > 30) {
+				lastBeat = frameCount;
+				globalT = 0.0;
+				playanim = true;
+				//changeMove=true;
+				animate();
+				
+                cout << "BEAT" << frameCount << endl;
+				//cout << frameCount << endl;
+				//numBeats++;
+				//playanim = true;
+				//globalT = 0.0;
+		       // skel->dance(*anim, *mesh, globalT, true);
+				//if (numBeats % 4 == 0) {
+					//changeMove=true;
+				//	cout << "changing moves!" << endl;
+				//}
+		        //glutPostRedisplay();
+				
+				// find new dance moves
+				// put moves into animate() or dance()
+				// animate/dance
 				
 				// double avgBeatDuration = calculateAvgBeatDuration(); // TODO
 				//double avgBeatDuration = 0.5;  //
@@ -180,8 +226,8 @@ void parseMusic()
 				//dance(avgBeatDuration);
 				
                 //skel->updateSkin(*mesh);
-            } else
-                cout << "----------------" << endl;
+            } //else
+                //cout << "----------------" << endl;
         }
     } else {
         memset( specL, 0, SPECLEN*sizeof(float) );
@@ -242,6 +288,7 @@ void wait(double seconds){
 	while(clock()<endwait){}
 }
 ///--------------------------------------------
+/*
 void dance(double beatDurSec, double t)
 {	
     if (playanim) {
@@ -251,6 +298,7 @@ void dance(double beatDurSec, double t)
             glutPostRedisplay();
     }
 }
+*/
 
 //----------------------------------------------------------------------------
 /// Called to handle keyboard events.
@@ -275,6 +323,7 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
         case 'p': // toggle animation playback mode
         case 'P':
             playanim = !playanim;
+			changeMove=true;
             break;
         case 'm': // switch through ik methods
         case 'M':
@@ -290,14 +339,10 @@ void myKeyboardFunc (unsigned char key, int x, int y) {
             fmodchn->setPaused(music_paused);
             break;
 		case 'd':
-			playanim = !playanim;
-			cout << "here" << endl;
-			for(double t=0.0;t<double(anim->numFrames() - 1);t+=0.01){
-			cout << "dance" << endl;
-			dance(0.5,t);
-			}
 			globalT = 0.0;
-            anim->clear();
+			playanim = true;
+			//changeMove=true;
+			animate();
 			break;
     }
 }
@@ -318,24 +363,6 @@ void setJointsByAnimation(int x) {
 
 
 
-//----------------------------------------------------------------------------
-/// Called in an idle loop.
-void animate()
-{
-    if (playanim) {
-            skel->dance(*anim, *mesh, globalT);
-			wait(0.01);
-            glutPostRedisplay();
-        
-        // REMOVE GLOBALT
-        if (globalT >= double(anim->numFrames() - 1)) {
-             globalT = 0.0;
-             anim->clear();
-			//pickedSequence = false; // pseudocode
-        } else
-            globalT += 0.01;
-    }
-}
 
 //----------------------------------------------------------------------------
 /// Called whenever the mouse moves while a button is pressed
@@ -446,7 +473,7 @@ int main(int argc,char** argv) {
 	glutKeyboardFunc(myKeyboardFunc);
 	glutMotionFunc(myActiveMotionFunc);
 	//glutPassiveMotionFunc(myPassiveMotionFunc);
-    //glutIdleFunc(animate);
+    glutIdleFunc(animate);
     glutMouseFunc(myMouseFunc);
     frameTimer(0);
 
